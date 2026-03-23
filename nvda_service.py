@@ -47,6 +47,7 @@ def load_state():
     try:
         with open(STATE_FILE) as f:
             state = json.load(f)
+        state.pop("last_reported", None)
         log.info("Loaded state: %s", state)
     except FileNotFoundError:
         log.info("No state file found, starting fresh")
@@ -170,11 +171,12 @@ def eod_loop(stop):
                     log.warning("Historical fetch failed: %s", e)
 
             if state.get("date") == missed_date:
-                log.info("Catch-up report for %s", missed_date)
-                eod_report()
                 with state_lock:
                     state["last_reported"] = missed_date  # ← persist it
                     save_state()
+
+                log.info("Catch-up report for %s", missed_date)
+                eod_report()
 
         # ── Wait for next 4 PM weekday ────────────────────────────────────────
         now    = datetime.now(EASTERN)
@@ -195,7 +197,6 @@ def eod_loop(stop):
         with state_lock:
             state["last_reported"] = target.date().isoformat()
             save_state()
-
         eod_report()
 
     log.info("EOD stopped")
