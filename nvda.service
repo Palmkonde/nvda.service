@@ -1,0 +1,14 @@
+[Unit]
+Description=NVDA Stock Price Monitor
+After=network-online.target
+
+[Service]
+WorkingDirectory=/opt/nvda_service
+ExecStart=/usr/bin/python3 nvda_service.py
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
