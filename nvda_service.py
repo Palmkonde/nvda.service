@@ -13,7 +13,6 @@ import signal
 import sys
 import threading
 import yfinance as yf
-from datetime import time as dt_time
 from datetime import datetime, timezone, timedelta
 
 # ── Config ─────────────────────────────────────────────────────────────────────
