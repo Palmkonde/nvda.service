@@ -16,7 +16,7 @@ A lightweight systemd service that tracks NVDA stock price in the background.
 ```bash
 git clone https://github.com/Palmkonde/nvda.service.git
 cd nvda.service
-make setup
+make install
 ```
 
 ## Usage
@@ -33,7 +33,7 @@ make uninstall     # remove everything
 
 ## Logs
 
-Symlinked into the project folder after `make setup`:
+Symlinked into the project folder after `make install`:
 
 - `nvda.log` — full log file
 - `state.json` — persisted price state
