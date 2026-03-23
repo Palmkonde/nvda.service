@@ -12,7 +12,8 @@ import os
 import signal
 import sys
 import threading
-import urllib.request
+from pandas import DataFrame
+import yfinance as yf
 from datetime import time as dt_time
 from datetime import datetime, timezone, timedelta
 
@@ -74,40 +75,37 @@ def update_state(price):
 
 # ── Yahoo Finance ──────────────────────────────────────────────────────────────
 def fetch_price():
-    url = f"https://query1.finance.yahoo.com/v8/finance/chart/{SYMBOL}?interval=1m&range=1d"
-    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-    with urllib.request.urlopen(req, timeout=15) as r:
-        data = json.loads(r.read())
-    return float(data["chart"]["result"][0]["meta"]["regularMarketPrice"])
+    ticker = yf.Ticker(SYMBOL)
+    return float(ticker.fast_info["lastPrice"])
 
 def fetch_historical(date: str) -> dict:
     """
     Fetch OHLC for a specific past date (format: 'YYYY-MM-DD').
     Returns dict with open, high, low, close or raises on failure.
     """
-    # Convert date to unix timestamps (start of day / end of day Eastern)
-    day   = datetime.strptime(date, "%Y-%m-%d").replace(tzinfo=EASTERN)
-    start = int(day.timestamp())
-    end   = int((day + timedelta(days=1)).timestamp())
-
-    url = (
-        f"https://query1.finance.yahoo.com/v8/finance/chart/{SYMBOL}"
-        f"?interval=1d&period1={start}&period2={end}"
+    day = datetime.strptime(date, "%Y-%m-%d")
+    next_day = day + timedelta(days=1)
+    df = yf.download(
+        SYMBOL,
+        start=day.strftime("%Y-%m-%d"),
+        end=next_day.strftime("%Y-%m-%d"),
+        interval="1d",
+        progress=False
     )
-    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-    with urllib.request.urlopen(req, timeout=15) as r:
-        data = json.loads(r.read())
 
-    result    = data["chart"]["result"][0]
-    meta      = result["meta"]
-    quote     = result["indicators"]["quote"][0]
+    if df.empty:
+        raise ValueError(f"No data returned for {date}")
+
+    row = df.iloc[0]
+    ticker = yf.Ticker(SYMBOL)
+    prev = ticker.fast_info["previousClose"]
 
     return {
         "date":       date,
-        "min":        min(quote["low"]),
-        "max":        max(quote["high"]),
-        "last":       meta["regularMarketPrice"],
-        "prev_close": meta["chartPreviousClose"],
+        "min":        float(row["Low"].iloc[0]),
+        "max":        float(row["High"].iloc[0]),
+        "last":       float(row["Close"].iloc[0]),
+        "prev_close": float(prev),
     }
 
 # ── Ticker thread ──────────────────────────────────────────────────────────────
@@ -117,7 +115,9 @@ def is_market_open() -> bool:
     if now.weekday() > 4:
         return False
     
-    return dt_time(9, 30) <= now.time() <= dt_time(16, 0)
+    market = yf.Market("US")
+
+    return market.status == "open"
 
 def ticker_loop(stop):
     log.info("Ticker started (every %ds)", INTERVAL)

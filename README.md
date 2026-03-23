@@ -16,6 +16,7 @@ A lightweight systemd service that tracks NVDA stock price in the background.
 ```bash
 git clone https://github.com/Palmkonde/nvda.service.git
 cd nvda.service
+pip install -r requirements.txt
 make install
 ```
 
