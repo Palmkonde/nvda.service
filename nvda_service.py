@@ -115,8 +115,7 @@ def is_market_open() -> bool:
         return False
     
     market = yf.Market("US")
-
-    return market.status == "open"
+    return market.status.get('status') == "open"
 
 def ticker_loop(stop):
     log.info("Ticker started (every %ds)", INTERVAL)
@@ -137,14 +136,20 @@ def ticker_loop(stop):
 # ── EOD thread ─────────────────────────────────────────────────────────────────
 def last_market_close() -> datetime:
     """Return the most recent past 4 PM Eastern (today or previous weekday)."""
-    now = datetime.now(EASTERN)
-    candidate = now.replace(hour=EOD_HOUR, minute=0, second=0, microsecond=0)
+    market = yf.Market("US").status
+    log.debug(market)
 
-    # Step back day by day until we land on a weekday that's already passed
-    while True:
-        if candidate.weekday() < 5 and now > candidate:
-            return candidate
-        candidate -= timedelta(days=1)
+    close = market.get("close")
+    status = market.get("yfit_market_status")
+
+    # Market is open OR will open today — today's close hasn't happened yet
+    if status in ("YFT_MARKET_OPEN", "YFT_MARKET_WILL_OPEN"):
+        close -= timedelta(days=1)
+        while close.weekday() >= 5:
+            close -= timedelta(days=1)
+        close = close.replace(hour=EOD_HOUR, minute=0, second=0, microsecond=0)
+
+    return close.astimezone(EASTERN)
 
 
 def eod_loop(stop):
@@ -189,14 +194,6 @@ def eod_loop(stop):
         log.info("EOD: next report in %.0f min (at %s) (Eastern Time)",
                  wait / 60, target.strftime("%a %Y-%m-%d %H:%M"))
         stop.wait(wait)
-
-        if stop.is_set():
-            break
-
-        with state_lock:
-            state["last_reported"] = target.date().isoformat()
-            save_state()
-        eod_report()
 
     log.info("EOD stopped")
 
