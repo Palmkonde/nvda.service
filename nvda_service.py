@@ -192,10 +192,11 @@ def eod_loop(stop):
         if stop.is_set():
             break
 
-        eod_report()
         with state_lock:
             state["last_reported"] = target.date().isoformat()
             save_state()
+
+        eod_report()
 
     log.info("EOD stopped")
 
