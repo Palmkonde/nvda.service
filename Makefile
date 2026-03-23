@@ -6,7 +6,7 @@ install:
 	sudo mkdir -p $(SERVICE_DIR)
 	sudo cp nvda_service.py $(SERVICE_DIR)/
 	sudo cp nvda.service /etc/systemd/system/
-	sudo cp run.sh $(SERVICE_DIR)
+	sudo cp run.sh $(SERVICE_DIR)/
 	sudo chmod +x run.sh
 	sudo ln -sf $(SERVICE_DIR)/state.json ./state.json
 	sudo ln -sf $(SERVICE_DIR)/nvda.log ./nvda.log

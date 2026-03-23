@@ -13,11 +13,22 @@ A lightweight systemd service that tracks NVDA stock price in the background.
 
 ## Install
 
+### With python global environment
 ```bash
 git clone https://github.com/Palmkonde/nvda.service.git
 cd nvda.service
 pip install -r requirements.txt
 make install
+```
+
+### Python virtual environment
+```bash
+```
+git clone https://github.com/Palmkonde/nvda.service.git
+cd nvda.service
+make venv
+make install
+```
 ```
 
 ## Usage
@@ -26,7 +37,6 @@ make install
 # for venv version 
 make install        # deploy service
 make venv           # create venv + install yfinance
-make venv-status    # verify yfinance is visible
 make venv-remove    # tear down venv, falls back to system python
 
 make status        # check if service is running
