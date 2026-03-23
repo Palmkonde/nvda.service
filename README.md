@@ -23,12 +23,10 @@ make install
 
 ### Python virtual environment
 ```bash
-```
 git clone https://github.com/Palmkonde/nvda.service.git
 cd nvda.service
 make venv
 make install
-```
 ```
 
 ## Usage
