@@ -12,7 +12,6 @@ import os
 import signal
 import sys
 import threading
-from pandas import DataFrame
 import yfinance as yf
 from datetime import time as dt_time
 from datetime import datetime, timezone, timedelta

@@ -23,6 +23,12 @@ make install
 ## Usage
 
 ```bash
+# for venv version 
+make install        # deploy service
+make venv           # create venv + install yfinance
+make venv-status    # verify yfinance is visible
+make venv-remove    # tear down venv, falls back to system python
+
 make status        # check if service is running
 make inspect       # live logs
 make inspect-eod   # EOD reports only
